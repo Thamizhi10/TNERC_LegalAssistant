@@ -11,7 +11,7 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-INDEX_ZIP_URL = "https://drive.google.com/uc?id=1MUvU7ByNbVpxE4COU_rCXlqvkUFDevnA"
+INDEX_ZIP_URL = "https://drive.google.com/uc?export=download&id=1MUvU7ByNbVpxE4COU_rCXlqvkUFDevnA"
 
 def download_and_extract():
     if not os.path.exists("index"):
@@ -19,15 +19,19 @@ def download_and_extract():
 
         r = requests.get(INDEX_ZIP_URL)
 
-        if r.status_code != 200:
-            st.error("Failed to download index. Check Google Drive link.")
+        if "text/html" in r.headers.get("Content-Type", ""):
+            st.error("Google Drive link is not direct download. Fix link.")
             st.stop()
 
         with open("index.zip", "wb") as f:
             f.write(r.content)
 
-        with zipfile.ZipFile("index.zip", 'r') as zip_ref:
-            zip_ref.extractall()
+        try:
+            with zipfile.ZipFile("index.zip", 'r') as zip_ref:
+                zip_ref.extractall()
+        except:
+            st.error("Downloaded file is not a valid zip.")
+            st.stop()
 
         st.write("Ready")
 
