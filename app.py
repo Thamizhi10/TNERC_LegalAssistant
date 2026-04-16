@@ -11,7 +11,8 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-INDEX_ZIP_URL = "https://drive.google.com/uc?export=download&id=1MUvU7ByNbVpxE4COU_rCXlqvkUFDevnA"
+#INDEX_ZIP_URL = "https://drive.google.com/uc?export=download&id=1MUvU7ByNbVpxE4COU_rCXlqvkUFDevnA"
+INDEX_ZIP_URL = "https://huggingface.co/tam3222/tnerc_index/resolve/main/index.zip"
 
 def download_and_extract():
     if not os.path.exists("index"):
