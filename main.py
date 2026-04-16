@@ -6,6 +6,9 @@ import numpy as np
 from ingestion import ingest_subject, ingest_regulations
 from embeddings import get_embedding
 from logger import get_logger
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ---------------- PATHS ----------------
 RULINGS_INDEX_PATH = "index/rulings.index"
@@ -18,8 +21,8 @@ logger = get_logger()
 
 
 if __name__ == "__main__":
-
-    subject = "Auto feeder"
+    
+    subject = "CGRF R. 17 (4) (d)" #Cheque Dishonoured, Compensation_DSOP_ R.22, DC 26 SC 3, DC 27 (1) (3), DC 27 (4)
 
     logger.info("===== STARTING PIPELINE =====")
 
@@ -38,6 +41,7 @@ if __name__ == "__main__":
 
         texts = [c["text"] for c in reg_chunks if c["text"].strip()]
         embeddings = [get_embedding(t) for t in texts]
+
 
         dimension = len(embeddings[0])
         reg_index = faiss.IndexFlatL2(dimension)
@@ -72,8 +76,16 @@ if __name__ == "__main__":
 
     logger.info(f"New chunks: {len(new_chunks)}")
 
+    #texts = [c["text"] for c in new_chunks if c["text"].strip()]
+    #embeddings = [get_embedding(t) for t in texts]
     texts = [c["text"] for c in new_chunks if c["text"].strip()]
-    embeddings = [get_embedding(t) for t in texts]
+
+    response = client.embeddings.create(
+    model="text-embedding-3-small",
+    input=texts
+    )
+
+    embeddings = [d.embedding for d in response.data]    
 
     if index is None:
         dimension = len(embeddings[0])
