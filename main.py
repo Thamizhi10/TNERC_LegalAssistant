@@ -22,7 +22,7 @@ logger = get_logger()
 
 if __name__ == "__main__":
     
-    subject = "2017 METER DEFECT CASES" 
+    subject = "HC MADRAS Meter Defects" 
 
     logger.info("===== STARTING PIPELINE =====")
 

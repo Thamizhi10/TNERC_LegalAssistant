@@ -49,7 +49,7 @@ def ingest_subject(subject):
     all_chunks = []
 
     for file in os.listdir(subject_path):
-        if not file.endswith(".pdf"):
+        if not file.lower().endswith(".pdf"):
             continue
 
         logger.info(f"Processing: {subject} → {file}")
