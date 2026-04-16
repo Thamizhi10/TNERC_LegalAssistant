@@ -9,7 +9,13 @@ import docx
 
 from openai import OpenAI
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+#client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+def get_client():
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        st.error("OPENAI_API_KEY not set")
+        st.stop()
+    return OpenAI(api_key=api_key)
 
 INDEX_ZIP_URL = "https://huggingface.co/tam3222/tnerc_index/resolve/main/index.zip"
 
@@ -55,6 +61,7 @@ def extract_text(file):
 
 # ---------------- EMBEDDING ----------------
 def get_embedding(text):
+    client = get_client()
     response = client.embeddings.create(
         model="text-embedding-3-small",
         input=text
@@ -112,7 +119,7 @@ Answer in this format:
 4. Relevant past rulings
 5. Conclusion
 """
-
+    client = get_client()
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}]
