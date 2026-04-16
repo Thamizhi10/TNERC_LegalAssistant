@@ -11,31 +11,28 @@ from openai import OpenAI
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-#INDEX_ZIP_URL = "https://drive.google.com/uc?export=download&id=1MUvU7ByNbVpxE4COU_rCXlqvkUFDevnA"
 INDEX_ZIP_URL = "https://huggingface.co/tam3222/tnerc_index/resolve/main/index.zip"
 
+# ---------------- DOWNLOAD ----------------
 def download_and_extract():
     if not os.path.exists("index"):
         st.write("Downloading knowledge base...")
 
         r = requests.get(INDEX_ZIP_URL)
 
-        if "text/html" in r.headers.get("Content-Type", ""):
-            st.error("Google Drive link is not direct download. Fix link.")
+        if r.status_code != 200:
+            st.error("Download failed")
             st.stop()
 
         with open("index.zip", "wb") as f:
             f.write(r.content)
 
-        try:
-            with zipfile.ZipFile("index.zip", 'r') as zip_ref:
-                zip_ref.extractall()
-        except:
-            st.error("Downloaded file is not a valid zip.")
-            st.stop()
+        with zipfile.ZipFile("index.zip", 'r') as zip_ref:
+            zip_ref.extractall()
 
         st.write("Ready")
 
+# ---------------- LOAD ----------------
 def load_chunks():
     with open("index/chunks.pkl", "rb") as f:
         rulings_chunks = pickle.load(f)
@@ -45,6 +42,7 @@ def load_chunks():
 
     return rulings_chunks, reg_chunks
 
+# ---------------- TEXT EXTRACTION ----------------
 def extract_text(file):
     if file.name.endswith(".pdf"):
         doc = fitz.open(stream=file.read(), filetype="pdf")
@@ -57,13 +55,15 @@ def extract_text(file):
         doc = docx.Document(file)
         return "\n".join([p.text for p in doc.paragraphs])
 
+# ---------------- EMBEDDING ----------------
 def get_embedding(text):
     response = client.embeddings.create(
         model="text-embedding-3-small",
         input=text
     )
-    return response.data[0].embedding
+    return np.array(response.data[0].embedding)
 
+# ---------------- SEARCH ----------------
 def simple_search(query_emb, chunks, top_k=3):
     scores = []
 
@@ -79,13 +79,50 @@ def simple_search(query_emb, chunks, top_k=3):
     return [c for _, c in scores[:top_k]]
 
 def search_all(query, rulings_chunks, reg_chunks):
-    q_emb = np.array(get_embedding(query))
+    q_emb = get_embedding(query)
 
     rulings = simple_search(q_emb, rulings_chunks)
     regs = simple_search(q_emb, reg_chunks)
 
     return rulings, regs
 
+# ---------------- ANSWER GENERATION ----------------
+def generate_answer(query, rulings, regs):
+
+    context = "Regulations:\n"
+    for r in regs:
+        context += r["text"][:500] + "\n\n"
+
+    context += "\nPast Rulings:\n"
+    for r in rulings:
+        context += r["text"][:500] + "\n\n"
+
+    prompt = f"""
+You are a legal assistant.
+
+Based on the following regulations and past rulings, analyze the case and provide a clear decision.
+
+Case:
+{query}
+
+{context}
+
+Answer in this format:
+1. Decision
+2. Reasoning
+3. Relevant regulation references
+4. Relevant past rulings
+5. Conclusion
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": prompt}]
+    )
+
+    return response.choices[0].message.content
+
+# ---------------- UI ----------------
 st.title("TNERC Legal Assistant")
 
 download_and_extract()
@@ -101,7 +138,12 @@ if uploaded_file is not None:
 
     if st.button("Analyze Case"):
 
-        rulings, regs = search_all(query, rulings_chunks, reg_chunks)
+        with st.spinner("Analyzing..."):
+            rulings, regs = search_all(query, rulings_chunks, reg_chunks)
+            answer = generate_answer(query, rulings, regs)
+
+        st.subheader("Final Decision")
+        st.write(answer)
 
         st.subheader("Relevant Regulations")
         for r in regs:
