@@ -22,8 +22,7 @@ logger = get_logger()
 
 if __name__ == "__main__":
     
-    subject = "HC MADRAS Meter Defects" 
-
+    subject = "Withdrwn cases" 
     logger.info("===== STARTING PIPELINE =====")
 
     os.makedirs("index", exist_ok=True)
