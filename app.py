@@ -123,9 +123,17 @@ Answer in this format:
 # ---------------- UI ----------------
 st.title("TNERC Legal Assistant")
 
-st.write("Loading knowledge base...")
-download_and_extract()
-st.success("Ready")
+if "data_loaded" not in st.session_state:
+    st.session_state.data_loaded = False
+
+if not st.session_state.data_loaded:
+    if st.button("Load Knowledge Base"):
+        with st.spinner("Downloading..."):
+            download_and_extract()
+        st.session_state.data_loaded = True
+        st.success("Ready")
+else:
+    st.success("Knowledge base loaded")
 
 rulings_chunks, reg_chunks = load_chunks()
 
