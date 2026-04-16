@@ -21,6 +21,11 @@ def download_and_extract():
         st.write("Downloading knowledge base...")
 
         r = requests.get(INDEX_ZIP_URL)
+
+        if r.status_code != 200:
+            st.error("Failed to download index. Check Google Drive link.")
+            st.stop()
+
         with open("index.zip", "wb") as f:
             f.write(r.content)
 
