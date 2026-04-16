@@ -12,7 +12,7 @@ def ingest_regulations():
     all_chunks = []
 
     for file in os.listdir(REGULATIONS_PATH):
-        if not file.endswith(".pdf"):
+        if not file.lower().endswith(".pdf"):
             continue
 
         logger.info(f"Processing regulation: {file}")

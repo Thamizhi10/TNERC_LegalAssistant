@@ -22,7 +22,7 @@ logger = get_logger()
 
 if __name__ == "__main__":
     
-    subject = "DC 27 (4)" #,, 
+    subject = "2017 METER DEFECT CASES" 
 
     logger.info("===== STARTING PIPELINE =====")
 
@@ -80,12 +80,28 @@ if __name__ == "__main__":
     #embeddings = [get_embedding(t) for t in texts]
     texts = [c["text"] for c in new_chunks if c["text"].strip()]
 
-    response = client.embeddings.create(
+    '''response = client.embeddings.create(
     model="text-embedding-3-small",
     input=texts
     )
 
-    embeddings = [d.embedding for d in response.data]    
+    embeddings = [d.embedding for d in response.data]    '''
+    embeddings = []
+
+    batch_size = 50
+
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i+batch_size]
+
+        response = client.embeddings.create(
+            model="text-embedding-3-small",
+            input=batch
+        )
+
+        batch_embeddings = [d.embedding for d in response.data]
+        embeddings.extend(batch_embeddings)
+
+        logger.info(f"Processed batch {i} to {i+len(batch)}")
 
     if index is None:
         dimension = len(embeddings[0])
