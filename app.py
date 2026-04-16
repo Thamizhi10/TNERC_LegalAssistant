@@ -14,15 +14,13 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 INDEX_ZIP_URL = "https://huggingface.co/tam3222/tnerc_index/resolve/main/index.zip"
 
 # ---------------- DOWNLOAD ----------------
+@st.cache_resource
 def download_and_extract():
     if not os.path.exists("index"):
-        st.write("Downloading knowledge base...")
-
         r = requests.get(INDEX_ZIP_URL)
 
         if r.status_code != 200:
-            st.error("Download failed")
-            st.stop()
+            raise Exception("Download failed")
 
         with open("index.zip", "wb") as f:
             f.write(r.content)
@@ -30,7 +28,7 @@ def download_and_extract():
         with zipfile.ZipFile("index.zip", 'r') as zip_ref:
             zip_ref.extractall()
 
-        st.write("Ready")
+    return True
 
 # ---------------- LOAD ----------------
 def load_chunks():
@@ -125,7 +123,9 @@ Answer in this format:
 # ---------------- UI ----------------
 st.title("TNERC Legal Assistant")
 
+st.write("Loading knowledge base...")
 download_and_extract()
+st.success("Ready")
 
 rulings_chunks, reg_chunks = load_chunks()
 
