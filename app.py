@@ -1,5 +1,4 @@
 import streamlit as st
-import faiss
 import pickle
 import numpy as np
 import os
@@ -10,12 +9,10 @@ import docx
 
 from openai import OpenAI
 
-# ---------------- CONFIG ----------------
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 INDEX_ZIP_URL = "https://drive.google.com/uc?id=1MUvU7ByNbVpxE4COU_rCXlqvkUFDevnA"
 
-# ---------------- DOWNLOAD INDEX ----------------
 def download_and_extract():
     if not os.path.exists("index"):
         st.write("Downloading knowledge base...")
@@ -34,21 +31,15 @@ def download_and_extract():
 
         st.write("Ready")
 
-# ---------------- LOAD INDEXES ----------------
-def load_indexes():
-    rulings_index = faiss.read_index("index/rulings.index")
-
+def load_chunks():
     with open("index/chunks.pkl", "rb") as f:
         rulings_chunks = pickle.load(f)
-
-    reg_index = faiss.read_index("index/regulations.index")
 
     with open("index/reg_chunks.pkl", "rb") as f:
         reg_chunks = pickle.load(f)
 
-    return rulings_index, rulings_chunks, reg_index, reg_chunks
+    return rulings_chunks, reg_chunks
 
-# ---------------- EXTRACT TEXT ----------------
 def extract_text(file):
     if file.name.endswith(".pdf"):
         doc = fitz.open(stream=file.read(), filetype="pdf")
@@ -61,7 +52,6 @@ def extract_text(file):
         doc = docx.Document(file)
         return "\n".join([p.text for p in doc.paragraphs])
 
-# ---------------- EMBEDDING ----------------
 def get_embedding(text):
     response = client.embeddings.create(
         model="text-embedding-3-small",
@@ -69,26 +59,33 @@ def get_embedding(text):
     )
     return response.data[0].embedding
 
-# ---------------- SEARCH ----------------
-def search_all(query, rulings_index, rulings_chunks, reg_index, reg_chunks):
-    q_emb = get_embedding(query)
+def simple_search(query_emb, chunks, top_k=3):
+    scores = []
 
-    # Rulings
-    D1, I1 = rulings_index.search(np.array([q_emb]).astype("float32"), k=3)
-    rulings = [rulings_chunks[i] for i in I1[0]]
+    for c in chunks:
+        if "embedding" not in c:
+            continue
 
-    # Regulations
-    D2, I2 = reg_index.search(np.array([q_emb]).astype("float32"), k=3)
-    regs = [reg_chunks[i] for i in I2[0]]
+        emb = np.array(c["embedding"])
+        score = np.dot(query_emb, emb)
+        scores.append((score, c))
+
+    scores.sort(reverse=True, key=lambda x: x[0])
+    return [c for _, c in scores[:top_k]]
+
+def search_all(query, rulings_chunks, reg_chunks):
+    q_emb = np.array(get_embedding(query))
+
+    rulings = simple_search(q_emb, rulings_chunks)
+    regs = simple_search(q_emb, reg_chunks)
 
     return rulings, regs
 
-# ---------------- UI ----------------
 st.title("TNERC Legal Assistant")
 
 download_and_extract()
 
-rulings_index, rulings_chunks, reg_index, reg_chunks = load_indexes()
+rulings_chunks, reg_chunks = load_chunks()
 
 uploaded_file = st.file_uploader("Upload case file", type=["pdf", "docx"])
 
@@ -99,7 +96,7 @@ if uploaded_file is not None:
 
     if st.button("Analyze Case"):
 
-        rulings, regs = search_all(query, rulings_index, rulings_chunks, reg_index, reg_chunks)
+        rulings, regs = search_all(query, rulings_chunks, reg_chunks)
 
         st.subheader("Relevant Regulations")
         for r in regs:
