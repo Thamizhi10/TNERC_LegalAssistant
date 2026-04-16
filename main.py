@@ -22,7 +22,7 @@ logger = get_logger()
 
 if __name__ == "__main__":
     
-    subject = "CGRF R. 17 (4) (d)" #Cheque Dishonoured, Compensation_DSOP_ R.22, DC 26 SC 3, DC 27 (1) (3), DC 27 (4)
+    subject = "DC 27 (4)" #,, 
 
     logger.info("===== STARTING PIPELINE =====")
 
