@@ -9,7 +9,8 @@ import docx
 
 from openai import OpenAI
 
-#client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# ---------------- OPENAI CLIENT ----------------
 def get_client():
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -17,7 +18,9 @@ def get_client():
         st.stop()
     return OpenAI(api_key=api_key)
 
+
 INDEX_ZIP_URL = "https://huggingface.co/tam3222/tnerc_index/resolve/main/index.zip"
+
 
 # ---------------- DOWNLOAD ----------------
 @st.cache_resource
@@ -36,6 +39,7 @@ def download_and_extract():
 
     return True
 
+
 # ---------------- LOAD ----------------
 def load_chunks():
     with open("index/chunks.pkl", "rb") as f:
@@ -45,6 +49,7 @@ def load_chunks():
         reg_chunks = pickle.load(f)
 
     return rulings_chunks, reg_chunks
+
 
 # ---------------- TEXT EXTRACTION ----------------
 def extract_text(file):
@@ -59,6 +64,7 @@ def extract_text(file):
         doc = docx.Document(file)
         return "\n".join([p.text for p in doc.paragraphs])
 
+
 # ---------------- EMBEDDING ----------------
 def get_embedding(text):
     client = get_client()
@@ -67,6 +73,7 @@ def get_embedding(text):
         input=text
     )
     return np.array(response.data[0].embedding)
+
 
 # ---------------- SEARCH ----------------
 def simple_search(query_emb, chunks, top_k=3):
@@ -83,6 +90,7 @@ def simple_search(query_emb, chunks, top_k=3):
     scores.sort(reverse=True, key=lambda x: x[0])
     return [c for _, c in scores[:top_k]]
 
+
 def search_all(query, rulings_chunks, reg_chunks):
     q_emb = get_embedding(query)
 
@@ -90,6 +98,7 @@ def search_all(query, rulings_chunks, reg_chunks):
     regs = simple_search(q_emb, reg_chunks)
 
     return rulings, regs
+
 
 # ---------------- ANSWER GENERATION ----------------
 def generate_answer(query, rulings, regs):
@@ -119,6 +128,7 @@ Answer in this format:
 4. Relevant past rulings
 5. Conclusion
 """
+
     client = get_client()
     response = client.chat.completions.create(
         model="gpt-4o-mini",
@@ -127,43 +137,48 @@ Answer in this format:
 
     return response.choices[0].message.content
 
+
 # ---------------- UI ----------------
 st.title("TNERC Legal Assistant")
 
 if "data_loaded" not in st.session_state:
     st.session_state.data_loaded = False
 
+
+# ---------- LOAD BUTTON ----------
 if not st.session_state.data_loaded:
     if st.button("Load Knowledge Base"):
-        with st.spinner("Downloading..."):
+        with st.spinner("Downloading knowledge base..."):
             download_and_extract()
         st.session_state.data_loaded = True
-        st.success("Ready")
-else:
-    st.success("Knowledge base loaded")
+        st.success("Knowledge base loaded")
 
-rulings_chunks, reg_chunks = load_chunks()
 
-uploaded_file = st.file_uploader("Upload case file", type=["pdf", "docx"])
+# ---------- MAIN APP ----------
+if st.session_state.data_loaded:
 
-if uploaded_file is not None:
+    rulings_chunks, reg_chunks = load_chunks()
 
-    text = extract_text(uploaded_file)
-    query = text[:2000]
+    uploaded_file = st.file_uploader("Upload case file", type=["pdf", "docx"])
 
-    if st.button("Analyze Case"):
+    if uploaded_file is not None:
 
-        with st.spinner("Analyzing..."):
-            rulings, regs = search_all(query, rulings_chunks, reg_chunks)
-            answer = generate_answer(query, rulings, regs)
+        text = extract_text(uploaded_file)
+        query = text[:2000]
 
-        st.subheader("Final Decision")
-        st.write(answer)
+        if st.button("Analyze Case"):
 
-        st.subheader("Relevant Regulations")
-        for r in regs:
-            st.write(r["text"][:500])
+            with st.spinner("Analyzing..."):
+                rulings, regs = search_all(query, rulings_chunks, reg_chunks)
+                answer = generate_answer(query, rulings, regs)
 
-        st.subheader("Similar Past Rulings")
-        for r in rulings:
-            st.write(r["text"][:500])
+            st.subheader("Final Decision")
+            st.write(answer)
+
+            st.subheader("Relevant Regulations")
+            for r in regs:
+                st.write(r["text"][:500])
+
+            st.subheader("Similar Past Rulings")
+            for r in rulings:
+                st.write(r["text"][:500])
