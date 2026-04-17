@@ -125,7 +125,7 @@ def generate_answer(query, rulings, regs):
     prompt = f"""
 You are a legal assistant.
 
-Based on the following regulations and past rulings, analyze the case and provide a clear decision.
+Based on the following regulations and past rulings, analyze the case and provide a clear decision in legal format.
 
 Case:
 {query}

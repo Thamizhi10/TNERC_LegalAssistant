@@ -22,7 +22,7 @@ logger = get_logger()
 
 if __name__ == "__main__":
     
-    subject = "Withdrwn cases" 
+    subject = "Orders 2025" 
     logger.info("===== STARTING PIPELINE =====")
 
     os.makedirs("index", exist_ok=True)
