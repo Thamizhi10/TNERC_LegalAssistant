@@ -40,7 +40,8 @@ def download_and_extract():
     return True
 
 
-# ---------------- LOAD ----------------
+# ---------------- LOAD (CRITICAL FIX) ----------------
+@st.cache_resource
 def load_chunks():
     with open("index/chunks.pkl", "rb") as f:
         rulings_chunks = pickle.load(f)
@@ -64,9 +65,14 @@ def extract_text(file):
         doc = docx.Document(file)
         return "\n".join([p.text for p in doc.paragraphs])
 
+    return ""
+
 
 # ---------------- EMBEDDING ----------------
 def get_embedding(text):
+    if not text.strip():
+        return np.zeros(1536)
+
     client = get_client()
     response = client.embeddings.create(
         model="text-embedding-3-small",
@@ -80,10 +86,15 @@ def simple_search(query_emb, chunks, top_k=3):
     scores = []
 
     for c in chunks:
-        if "embedding" not in c:
+        if "embedding" not in c or c["embedding"] is None:
             continue
 
         emb = np.array(c["embedding"])
+
+        # Prevent crash due to mismatch
+        if emb.shape != query_emb.shape:
+            continue
+
         score = np.dot(query_emb, emb)
         scores.append((score, c))
 
@@ -150,6 +161,10 @@ if not st.session_state.data_loaded:
     if st.button("Load Knowledge Base"):
         with st.spinner("Downloading knowledge base..."):
             download_and_extract()
+
+        with st.spinner("Loading data into memory..."):
+            load_chunks()
+
         st.session_state.data_loaded = True
         st.success("Knowledge base loaded")
 
