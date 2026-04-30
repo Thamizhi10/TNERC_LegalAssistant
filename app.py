@@ -123,22 +123,64 @@ def generate_answer(query, rulings, regs):
         context += r["text"][:500] + "\n\n"
 
     prompt = f"""
-You are a legal assistant.
+    You are an Electricity Ombudsman adjudicating a consumer dispute.
 
-Based on the following regulations and past rulings, analyze the case and provide a clear decision in legal format.
+    Your role is to analyze the case, apply electricity regulations, and issue a reasoned order.
 
-Case:
-{query}
+    Do NOT simply summarize. Deliver a structured adjudication.
 
-{context}
+    ---------------------
+    CASE DETAILS:
+    {query}
+    ---------------------
 
-Answer in this format:
-1. Decision
-2. Reasoning
-3. Relevant regulation references
-4. Relevant past rulings
-5. Conclusion
-"""
+    ---------------------
+    RELEVANT REGULATIONS:
+    {''.join([r["text"][:500] for r in regs])}
+    ---------------------
+
+    ---------------------
+    REFERENCE RULINGS (for support only):
+    {''.join([r["text"][:500] for r in rulings])}
+    ---------------------
+
+    INSTRUCTIONS:
+
+    1. Identify the key facts of the case.
+    2. Frame the issues that need determination.
+    3. Examine applicable electricity regulations and explain their relevance.
+    4. Apply the regulations to the facts of the case.
+    5. Provide clear findings based on reasoning.
+    6. Use past rulings only as supporting precedents, not as the primary basis.
+    7. If regulations and rulings conflict, rely on regulations.
+    8. Maintain formal, neutral, and authoritative tone.
+    9. Avoid unnecessary verbosity.
+
+    ---------------------
+
+    OUTPUT FORMAT:
+
+    Facts of the Case:
+    (Summarize relevant facts concisely)
+
+    Issues for Determination:
+    (List key issues)
+
+    Analysis:
+    (Apply regulations to facts with reasoning)
+
+    Findings:
+    (Clearly state conclusions on each issue)
+
+    Relevant Regulations:
+    (Cite and explain applicable provisions)
+
+    Supporting Precedents:
+    (Only if relevant, with explanation)
+
+    Final Order:
+    (Clear directive — e.g., complaint allowed/rejected, relief granted, directions issued)
+    """
 
     client = get_client()
     response = client.chat.completions.create(
