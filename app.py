@@ -245,21 +245,21 @@ if st.session_state.data_loaded:
     """
     query = combined_text[:2000]
     if not query.strip():
-    st.warning("Please upload a file or enter case details")
-    st.stop()
+        st.warning("Please upload a file or enter case details")
+        st.stop()
     if st.button("Analyze Case"):
 
-    with st.spinner("Analyzing..."):
-        rulings, regs = search_all(query, rulings_chunks, reg_chunks)
-        answer = generate_answer(query, rulings, regs)
+        with st.spinner("Analyzing..."):
+            rulings, regs = search_all(query, rulings_chunks, reg_chunks)
+            answer = generate_answer(query, rulings, regs)
 
-    st.subheader("Final Decision")
-    st.write(answer)
+        st.subheader("Final Decision")
+        st.write(answer)
 
-    st.subheader("Relevant Regulations")
-    for r in regs:
-        st.write(r["text"][:500])
+        st.subheader("Relevant Regulations")
+        for r in regs:
+            st.write(r["text"][:500])
 
-    st.subheader("Similar Past Rulings")
-    for r in rulings:
-        st.write(r["text"][:500])
+        st.subheader("Similar Past Rulings")
+        for r in rulings:
+            st.write(r["text"][:500])
