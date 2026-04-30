@@ -131,7 +131,18 @@ def generate_answer(query, rulings, regs):
 
     ---------------------
     CASE DETAILS:
+
+    The following case contains:
+    1. User-provided description (may include claims or arguments)
+    2. Supporting document content (may contain factual records)
+
     {query}
+
+    INSTRUCTION:
+    - Treat user input as the complaint or argument
+    - Treat document content as supporting evidence
+    - If there is a conflict, rely on evidence and regulations
+    - Do not ignore user input; evaluate it critically
     ---------------------
 
     ---------------------
@@ -216,26 +227,39 @@ if st.session_state.data_loaded:
 
     rulings_chunks, reg_chunks = load_chunks()
 
+    user_text = st.text_area(
+    "Enter additional case details (optional)",
+    height=150,
+    placeholder="Explain the complaint, arguments, or important context..."
+    )
+
     uploaded_file = st.file_uploader("Upload case file", type=["pdf", "docx"])
+    file_text = ""
+    if uploaded_file is not None or user_text.strip():
+        file_text = extract_text(uploaded_file)
+    combined_text = f"""
+    User Input:
+    {user_text}
+    Document Content:
+    {file_text}
+    """
+    query = combined_text[:2000]
+    if not query.strip():
+    st.warning("Please upload a file or enter case details")
+    st.stop()
+    if st.button("Analyze Case"):
 
-    if uploaded_file is not None:
+    with st.spinner("Analyzing..."):
+        rulings, regs = search_all(query, rulings_chunks, reg_chunks)
+        answer = generate_answer(query, rulings, regs)
 
-        text = extract_text(uploaded_file)
-        query = text[:2000]
+    st.subheader("Final Decision")
+    st.write(answer)
 
-        if st.button("Analyze Case"):
+    st.subheader("Relevant Regulations")
+    for r in regs:
+        st.write(r["text"][:500])
 
-            with st.spinner("Analyzing..."):
-                rulings, regs = search_all(query, rulings_chunks, reg_chunks)
-                answer = generate_answer(query, rulings, regs)
-
-            st.subheader("Final Decision")
-            st.write(answer)
-
-            st.subheader("Relevant Regulations")
-            for r in regs:
-                st.write(r["text"][:500])
-
-            st.subheader("Similar Past Rulings")
-            for r in rulings:
-                st.write(r["text"][:500])
+    st.subheader("Similar Past Rulings")
+    for r in rulings:
+        st.write(r["text"][:500])
