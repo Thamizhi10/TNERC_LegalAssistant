@@ -11,21 +11,21 @@ from openai import OpenAI
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ---------------- PATHS ----------------
-RULINGS_INDEX_PATH = "index/rulings.index"
-RULINGS_CHUNKS_PATH = "index/chunks.pkl"
+RULINGS_INDEX_PATH = "indexv2/rulings.index"
+RULINGS_CHUNKS_PATH = "indexv2/chunks.pkl"
 
-REG_INDEX_PATH = "index/regulations.index"
-REG_CHUNKS_PATH = "index/reg_chunks.pkl"
+REG_INDEX_PATH = "indexv2/regulations.index"
+REG_CHUNKS_PATH = "indexv2/reg_chunks.pkl"
 
 logger = get_logger()
 
 
 if __name__ == "__main__":
     
-    subject = "Orders 2025" 
+    subject = "Agriculture No two sc in same sf number" #Changing subject
     logger.info("===== STARTING PIPELINE =====")
 
-    os.makedirs("index", exist_ok=True)
+    os.makedirs("indexv2", exist_ok=True)
 
     # =========================================================
     # STEP 1: REGULATIONS (RUN ONLY ONCE)

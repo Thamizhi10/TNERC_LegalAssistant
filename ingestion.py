@@ -2,13 +2,13 @@ import os
 import fitz
 import docx
 
-from utils import split_into_chunks, translate_to_english
+from utils import split_regulation_chunks,split_ruling_chunks,translate_to_english
 from logger import get_logger
 
 logger = get_logger()
 
-BASE_PATH = "data/rulings/Ombudsman Orders"
-REGULATIONS_PATH = "data/regulations"
+BASE_PATH = "data/Rulings"
+REGULATIONS_PATH = "data/Regulations"
 
 
 # ---------------- TEXT EXTRACTION ----------------
@@ -55,7 +55,7 @@ def ingest_regulations():
             if not full_text:
                 continue
 
-            raw_chunks = split_into_chunks(full_text)
+            raw_chunks = split_regulation_chunks(full_text)
 
             for chunk in raw_chunks:
                 translated_chunk = translate_to_english(chunk)
@@ -94,7 +94,7 @@ def ingest_subject(subject):
             if not full_text:
                 continue
 
-            raw_chunks = split_into_chunks(full_text)
+            raw_chunks = split_ruling_chunks(full_text)
 
             for chunk in raw_chunks:
                 translated_chunk = translate_to_english(chunk)

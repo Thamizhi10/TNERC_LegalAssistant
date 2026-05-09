@@ -19,7 +19,7 @@ def get_client():
     return OpenAI(api_key=api_key)
 
 
-INDEX_ZIP_URL = "https://huggingface.co/tam3222/tnerc_index/resolve/main/index.zip"
+INDEX_ZIP_URL = "https://huggingface.co/tam3222/tnerc_index/resolve/main/indexv2.zip"
 
 
 # ---------------- DOWNLOAD ----------------
@@ -243,7 +243,7 @@ if st.session_state.data_loaded:
     Document Content:
     {file_text}
     """
-    query = combined_text[:2000]
+    query = combined_text[:6000]
     if not query.strip():
         st.warning("Please upload a file or enter case details")
         st.stop()
