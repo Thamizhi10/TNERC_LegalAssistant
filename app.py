@@ -243,7 +243,7 @@ if st.session_state.data_loaded:
     Document Content:
     {file_text}
     """
-    query = combined_text[:6000]
+    query = combined_text
     if not query.strip():
         st.warning("Please upload a file or enter case details")
         st.stop()
