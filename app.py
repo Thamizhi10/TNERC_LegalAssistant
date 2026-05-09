@@ -56,6 +56,8 @@ def load_chunks():
 
 # ---------------- TEXT EXTRACTION ----------------
 def extract_text(file):
+    if file is None:
+        return ""
     if file.name.endswith(".pdf"):
         doc = fitz.open(stream=file.read(), filetype="pdf")
         text = ""
@@ -267,8 +269,8 @@ if st.session_state.data_loaded:
     file_text = ""
     if uploaded_file is not None or user_text.strip():
         file_text = extract_text(uploaded_file)
-    if uploaded_file is None:
-        file_text = ""
+    #if uploaded_file is None:
+        #file_text = ""
     combined_text = f"""
     User Input:
     {user_text}
