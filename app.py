@@ -9,6 +9,8 @@ import docx
 
 from openai import OpenAI
 
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
 # ---------------- OPENAI CLIENT ----------------
 def get_client():
@@ -192,12 +194,30 @@ def generate_answer(query, rulings, regs):
     Final Order:
     (Clear directive — e.g., complaint allowed/rejected, relief granted, directions issued)
     """
+    recent_history = st.session_state.messages[-6:]
+
+    messages = [
+    {
+        "role": "system",
+        "content": prompt
+    }
+    ]
+    messages.extend(recent_history)
+    messages.append({
+    "role": "user",
+    "content": prompt
+    })
 
     client = get_client()
     response = client.chat.completions.create(
         model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
+        messages=messages
     )
+    
+    st.session_state.messages.append({
+    "role": "assistant",
+    "content": response.choices[0].message.content
+    })
 
     return response.choices[0].message.content
 
@@ -227,11 +247,21 @@ if st.session_state.data_loaded:
 
     rulings_chunks, reg_chunks = load_chunks()
 
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    
     user_text = st.text_area(
     "Enter additional case details (optional)",
     height=150,
     placeholder="Explain the complaint, arguments, or important context..."
     )
+    
+    if user_text:
+        st.session_state.messages.append({
+        "role": "user",
+        "content": user_text
+        })  
 
     uploaded_file = st.file_uploader("Upload case file", type=["pdf", "docx"])
     file_text = ""
