@@ -6,7 +6,6 @@ import zipfile
 import requests
 import fitz
 import docx
-import faiss
 
 from openai import OpenAI
 
