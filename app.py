@@ -33,10 +33,10 @@ def download_and_extract():
         if r.status_code != 200:
             raise Exception("Download failed")
 
-        with open("index.zip", "wb") as f:
+        with open("indexv2.zip", "wb") as f:
             f.write(r.content)
 
-        with zipfile.ZipFile("index.zip", 'r') as zip_ref:
+        with zipfile.ZipFile("indexv2.zip", 'r') as zip_ref:
             zip_ref.extractall()
 
     return True
@@ -45,7 +45,7 @@ def download_and_extract():
 # ---------------- LOAD (CRITICAL FIX) ----------------
 @st.cache_resource
 def load_chunks():
-    with open("index/chunks.pkl", "rb") as f:
+    with open("indexv2/chunks.pkl", "rb") as f:
         rulings_chunks = pickle.load(f)
 
     with open("index/reg_chunks.pkl", "rb") as f:
