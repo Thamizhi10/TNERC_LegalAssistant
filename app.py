@@ -279,13 +279,15 @@ if st.session_state.data_loaded:
             rulings, regs = search_all(query, rulings_chunks, reg_chunks)
             answer = generate_answer(query, rulings, regs)
 
-        st.subheader("Final Decision")
-        st.write(answer)
+        with st.chat_message("assistant"):
+            st.markdown(answer)
 
-        st.subheader("Relevant Regulations")
-        for r in regs:
-            st.write(r["text"][:500])
+        if regs:
+            st.subheader("Relevant Regulations")
+            for r in regs:
+                st.write(r["text"][:500])
 
-        st.subheader("Similar Past Rulings")
-        for r in rulings:
-            st.write(r["text"][:500])
+        if rulings:
+            st.subheader("Similar Past Rulings")
+            for r in rulings:
+                st.write(r["text"][:500])
