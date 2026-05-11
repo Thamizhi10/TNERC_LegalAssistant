@@ -6,6 +6,7 @@ import zipfile
 import requests
 import fitz
 import docx
+import faiss
 
 from openai import OpenAI
 
@@ -247,7 +248,7 @@ if not st.session_state.data_loaded:
 # ---------- MAIN APP ----------
 if st.session_state.data_loaded:
 
-    #rulings_chunks, reg_chunks = load_chunks()
+    rulings_chunks, reg_chunks = load_chunks()
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
@@ -282,7 +283,7 @@ if st.session_state.data_loaded:
     if not query.strip():
         st.warning("Please upload a file or enter case details")
         st.stop()
-    if st.button("Analyze Case"):
+    if user_text:
 
         with st.spinner("Analyzing..."):
             rulings, regs = search_all(query, rulings_chunks, reg_chunks)
