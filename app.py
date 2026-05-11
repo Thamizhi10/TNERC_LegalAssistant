@@ -254,11 +254,6 @@ if st.session_state.data_loaded:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
     
-    '''user_text = st.text_area(
-    "Enter additional case details (optional)",
-    height=150,
-    placeholder="Explain the complaint, arguments, or important context..."
-    )'''
     user_text = st.chat_input("Describe the case or ask a legal question...")
     
     if user_text:
