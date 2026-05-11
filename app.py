@@ -247,7 +247,8 @@ if not st.session_state.data_loaded:
 # ---------- MAIN APP ----------
 if st.session_state.data_loaded:
 
-    rulings_chunks, reg_chunks = load_chunks()
+    #rulings_chunks, reg_chunks = load_chunks()
+    st.write("App Loaded")
 
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
