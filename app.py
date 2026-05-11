@@ -254,11 +254,12 @@ if st.session_state.data_loaded:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
     
-    user_text = st.text_area(
+    '''user_text = st.text_area(
     "Enter additional case details (optional)",
     height=150,
     placeholder="Explain the complaint, arguments, or important context..."
-    )
+    )'''
+    user_text = st.chat_input("Describe the case or ask a legal question...")
     
     if user_text:
         st.session_state.messages.append({
@@ -266,9 +267,14 @@ if st.session_state.data_loaded:
         "content": user_text
         })  
 
-    uploaded_file = st.file_uploader("Upload case file", type=["pdf", "docx"])
+    #uploaded_file = st.file_uploader("Upload case file", type=["pdf", "docx"])
+    with st.sidebar:
+        uploaded_file = st.file_uploader(
+        "Upload case file",
+        type=["pdf", "docx"]
+        )
     file_text = ""
-    if uploaded_file is not None or user_text.strip():
+    if uploaded_file is not None:
         file_text = extract_text(uploaded_file)
     #if uploaded_file is None:
         #file_text = ""
