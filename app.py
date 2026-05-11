@@ -48,7 +48,7 @@ def load_chunks():
     with open("indexv2/chunks.pkl", "rb") as f:
         rulings_chunks = pickle.load(f)
 
-    with open("index/reg_chunks.pkl", "rb") as f:
+    with open("indexv2/reg_chunks.pkl", "rb") as f:
         reg_chunks = pickle.load(f)
 
     return rulings_chunks, reg_chunks
